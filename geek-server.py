@@ -1,3 +1,13 @@
+'''
+Tutorial is from the Geeks4Geeks website:
+	- just an example
+	- import "thread"/"_thread" is not the import you should be using?
+		- I am pretty sure this provides lower-level access to the library
+			and is the underlying framework behind the "threading" import
+	- https://www.geeksforgeeks.org/simple-chat-room-using-python/
+'''
+
+
 # Python program to implement server side of chat room. 
 import socket 
 import select 
