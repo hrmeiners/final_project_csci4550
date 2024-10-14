@@ -1,62 +1,74 @@
 import socket
 import threading
-import tkinter as tk
-from tkinter import scrolledtext
-from tkinter import messagebox
 
 HOST = '127.0.0.1'
 PORT = 1234
 
-DARK_GREY = '#121212'
-MEDIUM_GREY = '#1F1B24'
-OCEAN_BLUE = '#464EB8'
-WHITE = "white"
-FONT = ("Helvetica", 17)
-BUTTON_FONT = ("Helvetica", 15)
-SMALL_FONT = ("Helvetica", 13)
-
 # Creating a socket object
-# AF_INET: we are going to use IPv4 addresses
-# SOCK_STREAM: we are using TCP packets for communication
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# AF_INET: we are using IPv4 
+# SOCK_STREAM: we are using TCP 
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
-def add_message(message):
-    message_box.config(state=tk.NORMAL)
-    message_box.insert(tk.END, message + '\n')
-    message_box.config(state=tk.DISABLED)
-
+# add message to the UI window
+# def add_message(message):
+    
 
 def connect():
     # connect to server
     try:
-        client.connect((HOST, PORT))
+        server_socket.connect((HOST, PORT))
         print("Successfully connected to server")
-        add_message("[SERVER] Successfully connected to the server")
+        # add_message("[SERVER] Successfully connected to the server")
     except:
-        messagebox.showerror("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
+        print("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
 
-    username = username_textbox.get()
-    if username != '':
-        client.sendall(username.encode())
-    else:
-        messagebox.showerror("Invalid username", "Username cannot be empty")
+    print("Please type your username:")
+    username = input()
 
-    threading.Thread(target=listen_for_messages_from_server, args=(client, )).start()
-
-    username_textbox.config(state=tk.DISABLED)
-    username_button.config(state=tk.DISABLED)
+    while username == '':    
+        print("Invalid username: Username cannot be empty")
+        print("Please retype your username:")
+        username = input()
+        
+    server_socket.sendall(username.encode())
+    listen_for_messages_from_server(server_socket)
+    # threading.Thread(target=listen_for_messages_from_server, args=(server, )).start()
 
 
 def send_message():
-    message = message_textbox.get()
-    if message != '':
-        client.sendall(message.encode())
-        message_textbox.delete(0, len(message))
-    else:
-        messagebox.showerror("Empty message", "Message cannot be empty")
+    message = input()
+    while message == '':
+        print("Empty message", "Message cannot be empty")
+        message = input()
+
+    server_socket.sendall(message.encode())
 
 
+def listen_for_messages_from_server(server):
+    # infinitely loops
+    while True:
+        message = server.recv(2048).decode('utf-8')
+        if message != '':
+            username = message.split("~")[0]
+            content = message.split('~')[1]
+
+            # add_message(f"[{username}] {content}")
+        else:
+            print("Error", "Message recevied from server is empty")
+
+
+# main function
+def main():
+    connect()    
+    
+if __name__ == '__main__':
+    main()
+    
+    
+    
+
+'''
 root = tk.Tk()
 root.geometry("600x600")
 root.title("Messenger Client")
@@ -93,25 +105,4 @@ message_button.pack(side=tk.LEFT, padx=10)
 message_box = scrolledtext.ScrolledText(middle_frame, font=SMALL_FONT, bg=MEDIUM_GREY, fg=WHITE, width=67, height=26.5)
 message_box.config(state=tk.DISABLED)
 message_box.pack(side=tk.TOP)
-
-
-def listen_for_messages_from_server(client):
-    # infinitely loops
-    while 1:
-        message = client.recv(2048).decode('utf-8')
-        if message != '':
-            username = message.split("~")[0]
-            content = message.split('~')[1]
-
-            add_message(f"[{username}] {content}")
-        else:
-            messagebox.showerror("Error", "Message recevied from client is empty")
-
-
-# main function
-def main():
-    root.mainloop()
-    
-    
-if __name__ == '__main__':
-    main()
+'''
