@@ -1,27 +1,29 @@
+# old server imports
 import socket
 import threading 
+
+# new server imports
+from datetime import datetime, timezone
+from typing import List, Tuple
+from uuid import uuid4
+
+from nicegui import ui
+
+
 
 HOST = '127.0.0.1'
 PORT = 1234         
 LISTENER_LIMIT = 5  # max people allowed on server at once
 active_clients = [] # List of all currently connected users
 
-
-# Function to listen for upcoming messages from a client
-def listen_for_messages(client_socket, username):
-    # infinitely loops and checks for incoming client messages
-    while True:
-        message = client_socket.recv(2048).decode('utf-8')
-        
-        if message != '':
-            final_msg = username + '~' + message
-            send_messages_to_all(final_msg)
-        else:
-            print(f"The message send from client {username} is empty")
+# List[Message[user_id, avatar, text, stamp]]
+message_history: List[Tuple[str, str, str, str]] = []
 
 
 # Function to send message to a single client
 def send_message_to_client(client_socket, message):
+    message = ui.chat_message(text=message, stamp=datetime.now(timezone.utc).strftime('%X'))
+    message_history.append(message)
     client_socket.sendall(message.encode())
 
 
@@ -32,24 +34,19 @@ def send_messages_to_all(message):
         send_message_to_client(user[1], message)
 
 
-# Function to handle client
-def client_handler(client_socket):
-    # infinitely loops
+# Function to listen for upcoming messages from a client
+def listen_for_messages(client_socket):
+    # infinitely loops and checks for incoming client messages
     while True:
-        username = client_socket.recv(2048).decode('utf-8')        
+        message = client_socket.recv(2048).decode('utf-8')
         
-        # add new user to active_clients
-        if username != '':
-            active_clients.append((username, client_socket))
-            client_join_msg = "Client~" + f"{username} added to the chat"
-            send_messages_to_all(client_join_msg)
-            
-            print(client_join_msg)
-            break
+        if message != '':
+            print(f"{message}")
         else:
-            print("Client username is empty")
+            print(f"The message send from client is empty")
 
-    threading.Thread(target=listen_for_messages, args=(client_socket, username, )).start()
+
+
 
 
 # Main function
@@ -74,11 +71,7 @@ def main():
     while True:
         client_socket, address = server.accept()
         print(f"Successfully connected to client: address {address[0]}, port {address[1]}")
-
-        client_handler(client_socket)
-        # threading.Thread(target=client_handler, args=(client_socket, )).start()
-
-
+        listen_for_messages(client_socket)
 
 if __name__ == '__main__':
     main()
