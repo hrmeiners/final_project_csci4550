@@ -1,17 +1,20 @@
 import socket
-import threading
+import threading 
 
 HOST = '127.0.0.1'
 PORT = 1234         
 LISTENER_LIMIT = 5  # max people allowed on server at once
 active_clients = [] # List of all currently connected users
 
+# List[Message[user_id, avatar, text, stamp]]
+# message_history: List[Tuple[str, str, str, str]] = []
+
 
 # Function to listen for upcoming messages from a client
-def listen_for_messages(client, username):
+def listen_for_messages(client_socket, username):
     # infinitely loops and checks for incoming client messages
-    while 1:
-        message = client.recv(2048).decode('utf-8')
+    while True:
+        message = client_socket.recv(2048).decode('utf-8')
         
         if message != '':
             final_msg = username + '~' + message
@@ -21,8 +24,8 @@ def listen_for_messages(client, username):
 
 
 # Function to send message to a single client
-def send_message_to_client(client, message):
-    client.sendall(message.encode())
+def send_message_to_client(client_socket, message):
+    client_socket.sendall(message.encode())
 
 
 # Function to send any new message to all the clients that
@@ -33,21 +36,24 @@ def send_messages_to_all(message):
 
 
 # Function to handle client
-def client_handler(client):
+def client_handler(client_socket):
     # infinitely loops
-    while 1:
-        username = client.recv(2048).decode('utf-8')
+    while True:
+        username = client_socket.recv(2048).decode('utf-8')        
         
         # add new user to active_clients
         if username != '':
-            active_clients.append((username, client))
-            prompt_message = "SERVER~" + f"{username} added to the chat"
-            send_messages_to_all(prompt_message)
+            active_clients.append((username, client_socket))
+            client_join_msg = "Client~" + f"{username} added to the chat"
+            send_messages_to_all(client_join_msg)
+            
+            print(client_join_msg)
             break
         else:
             print("Client username is empty")
 
-    threading.Thread(target=listen_for_messages, args=(client, username, )).start()
+
+    # threading.Thread(target=listen_for_messages, args=(client_socket, username, )).start()
 
 
 # Main function
@@ -66,13 +72,15 @@ def main():
 
     # Set server limit of how many clients at once
     server.listen(LISTENER_LIMIT)
+    print(f"Listener Limit: {LISTENER_LIMIT}")
 
     # This while loop will keep listening to client connections
-    while 1:
-        client, address = server.accept()
-        print(f"Successfully connected to client {address[0]} {address[1]}")
+    while True:
+        client_socket, address = server.accept()
+        print(f"Successfully connected to client: address {address[0]}, port {address[1]}")
 
-        threading.Thread(target=client_handler, args=(client, )).start()
+        client_handler(client_socket)
+        # threading.Thread(target=client_handler, args=(client_socket, )).start()
 
 
 
