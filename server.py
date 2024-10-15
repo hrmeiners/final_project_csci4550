@@ -6,6 +6,9 @@ PORT = 1234
 LISTENER_LIMIT = 5  # max people allowed on server at once
 active_clients = [] # List of all currently connected users
 
+# List[Message[user_id, avatar, text, stamp]]
+# message_history: List[Tuple[str, str, str, str]] = []
+
 
 # Function to listen for upcoming messages from a client
 def listen_for_messages(client_socket, username):
@@ -49,7 +52,8 @@ def client_handler(client_socket):
         else:
             print("Client username is empty")
 
-    threading.Thread(target=listen_for_messages, args=(client_socket, username, )).start()
+
+    # threading.Thread(target=listen_for_messages, args=(client_socket, username, )).start()
 
 
 # Main function
