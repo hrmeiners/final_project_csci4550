@@ -1,0 +1,55 @@
+{% extends 'base.html' %} 
+
+{% block content %}
+<div class="homepage-container">
+  <form method="post" class="form">
+    <h3>Welcome to Real-time Chat!</h3>
+    
+    <div class="form-group">
+      <label for="name">Enter a Name:</label>
+      <input
+        type="text"
+        id="name"
+        placeholder="Your Name"
+        name="name"
+        value="{{name}}"
+        required
+      />
+    </div>
+    
+    <div class="form-group">
+      <label for="code">Room Code:</label>
+      <input
+        type="text"
+        id="code"
+        placeholder="Room Code"
+        name="code"
+        value="{{code}}"
+      />
+    </div>
+    
+    <div class="buttons">
+      <button type="submit" name="join" class="join-btn" onclick="setRoomCodeRequired(true)">Join a Room</button>
+      <button type="submit" name="create" class="create-btn" onclick="setRoomCodeRequired(false)">Create a Room</button>
+    </div>
+    
+    {% if error %}
+    <ul class="error-message">
+      <li>{{error}}</li>
+    </ul>
+    {% endif %}
+  </form>
+</div>
+
+<script>
+  function setRoomCodeRequired(isRequired) {
+    const roomCodeInput = document.getElementById('code');
+    if (isRequired) {
+      roomCodeInput.setAttribute('required', 'required');
+    } else {
+      roomCodeInput.removeAttribute('required');
+    }
+  }
+</script>
+{% endblock %}
+
