@@ -97,7 +97,7 @@ h2 {
 /* Individual Message Styling */
 .text {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   padding: 5px 10px;
   margin: 5px 0;
   background-color: #e6f3ff;
