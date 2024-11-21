@@ -1,36 +1,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
-::: video-container
-  ::: video-grid
-    <video id="localVideo" autoplay playsinline muted></video>
-    <div id="videoGrid"></div>
-  :::
-  ::: video-controls
-    <button id="startVideo" class="video-btn">Start Video</button>
-    <button id="stopVideo" class="video-btn">Stop Video</button>
-    <button id="toggleMute" class="video-btn">Mute</button>
-  :::
-:::
-::: {#messages .messages}
-:::
-::: inputs
-  <input type="text" id="message" placeholder="Type your message...">
-  <button class="send-btn">Send</button>
-:::
-:::::
-
-
-
 <div class="message-box">
   <h2>Chat Room: {{code}}</h2>
+
+  <div class="video-container">
+    <div id="videoGrid" class="video-grid">
+        <!-- Video elements will be dynamically added here -->
+        <video></video>
+        <video></video>
+    </div>
+  </div>
+
+  <div class="video-controls">
+    <button id="startVideoBtn">Start Video</button>
+    <button id="stopVideoBtn">Stop Video</button>
+    <button id="muteBtn">Mute</button>
+  </div>
+
   <div class="messages" id="messages"></div>
   <div class="inputs">
     <input type="text" rows="3" placeholder="Message" name="message" id="message" />
     <button type="button" name="send" id="send-btn" onClick="sendMessage()">Send</button>
   </div>
 </div>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.3.2/jsencrypt.min.js"></script>
@@ -106,7 +100,7 @@
     aesKey = getAESKey();
     if (!aesKey) {
       console.error("AES Key is missing!");
-    return;
+      return;
     }
 
     try {
@@ -140,43 +134,73 @@
 </script>
 {% endfor %} 
 
-
-<script type="module">
-  import VideoChat from '/static/js/videochat.js';
-
+<script>
+  // Placeholder JavaScript for video chat functionality
   document.addEventListener('DOMContentLoaded', () => {
-    const videoChat = new VideoChat('{{code}}', io());
+      const startVideoBtn = document.getElementById('startVideoBtn');
+      const stopVideoBtn = document.getElementById('stopVideoBtn');
+      const muteBtn = document.getElementById('muteBtn');
+      const videoGrid = document.getElementById('videoGrid');
+      const messageInput = document.getElementById('messageInput');
+      const sendMessageBtn = document.getElementById('sendMessageBtn');
+      const messagesContainer = document.getElementById('messages');
 
-    const startVideoBtn = document.getElementById('startVideo');
-    const stopVideoBtn = document.getElementById('stopVideo');
-    const toggleMuteBtn = document.getElementById('toggleMute');
+      // Start Video functionality (mock implementation)
+      startVideoBtn.addEventListener('click', async () => {
+          try {
+              const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+              const videos = videoGrid.querySelectorAll('video');
+              videos.forEach(video => {
+                  video.srcObject = stream;
+                  video.play();
+              });
+          } catch (error) {
+              console.error('Error accessing media devices:', error);
+              alert('Could not start video. Please check your camera permissions.');
+          }
+      });
 
-    startVideoBtn.addEventListener('click', async () => {
-      await videoChat.initializeVideo();
-      startVideoBtn.classList.add('stopped');
-      stopVideoBtn.classList.remove('stopped');
-    });
+      // Stop Video functionality
+      stopVideoBtn.addEventListener('click', () => {
+          const videos = videoGrid.querySelectorAll('video');
+          videos.forEach(video => {
+              const stream = video.srcObject;
+              const tracks = stream?.getTracks() || [];
+              tracks.forEach(track => track.stop());
+              video.srcObject = null;
+          });
+      });
 
-    stopVideoBtn.addEventListener('click', () => {
-      if (videoChat.localStream) {
-        videoChat.localStream.getTracks().forEach(track => track.stop());
-        videoChat.localStream = null;
-        document.getElementById('localVideo').srcObject = null;
-        startVideoBtn.classList.remove('stopped');
-        stopVideoBtn.classList.add('stopped');
-      }
-    });
+      // Mute functionality
+      muteBtn.addEventListener('click', () => {
+          const videos = videoGrid.querySelectorAll('video');
+          videos.forEach(video => {
+              video.muted = !video.muted;
+              muteBtn.textContent = video.muted ? 'Unmute' : 'Mute';
+          });
+      });
 
-    toggleMuteBtn.addEventListener('click', () => {
-      if (videoChat.localStream) {
-        const audioTrack = videoChat.localStream.getAudioTracks()[0];
-        audioTrack.enabled = !audioTrack.enabled;
-        toggleMuteBtn.textContent = audioTrack.enabled ? 'Mute' : 'Unmute';
-        toggleMuteBtn.classList.toggle('muted');
-      }
-    });
+      // Send Message functionality
+      sendMessageBtn.addEventListener('click', () => {
+          const messageText = messageInput.value.trim();
+          if (messageText) {
+              const messageElement = document.createElement('div');
+              messageElement.classList.add('message');
+              messageElement.textContent = `You: ${messageText}`;
+              messagesContainer.appendChild(messageElement);
+              messageInput.value = '';
+              
+              // Scroll to bottom of messages
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          }
+      });
+
+      // Allow sending message with Enter key
+      messageInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+              sendMessageBtn.click();
+          }
+      });
   });
 </script>
-{% endblock %}
 {% endblock %}  <!-- This is the original endblock for the code-->
-

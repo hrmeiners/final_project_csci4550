@@ -1,4 +1,3 @@
-# main.py
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_socketio import join_room, leave_room, send, SocketIO
 from flask_socketio import emit
@@ -181,10 +180,6 @@ def disconnect():
     send({"name": name, "message": f"{name} has left the room", "type": "system"}, to=room)
     print(f"{name} has left the room {room}")
 
-
-
-
 if __name__ == "__main__":
     socketio.run(app, debug=True)
-
-
+    # ip/port for my hotspot:  "172.20.10.9", 5000
