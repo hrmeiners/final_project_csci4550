@@ -1,6 +1,6 @@
-# main.py
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_socketio import join_room, leave_room, send, SocketIO
+from flask_socketio import emit
 import random
 from string import ascii_uppercase
 from Crypto.PublicKey import RSA
@@ -126,8 +126,41 @@ def connect(auth):
     send({"name": name, "message": f"{name} has entered the room", "type": "system"}, to=room)
     rooms[room]["members"] += 1
     print(f"{name} joined room {room}")
+    
 
-@socketio.on("disconnect")
+#---------------------- Web RTC funcs ------------------------------
+@socketio.on('join_video_room')
+def handle_join_video_room(data):
+    room = data['roomId']
+    # Notify other users in the room
+    emit('user_joined_video', 
+         {'userId': request.sid}, 
+         room=room,
+         skip_sid=request.sid)
+
+@socketio.on('video_offer')
+def handle_video_offer(data):
+    emit('video_offer', {
+        'offer': data['offer'],
+        'from': request.sid
+    }, room=data['to'])
+
+@socketio.on('video_answer')
+def handle_video_answer(data):
+    emit('video_answer', {
+        'answer': data['answer'],
+        'from': request.sid
+    }, room=data['to'])
+
+@socketio.on('ice_candidate')
+def handle_ice_candidate(data):
+    emit('ice_candidate', {
+        'candidate': data['candidate'],
+        'from': request.sid
+    }, room=data['to'])
+
+# Modify the existing disconnect handler to include video cleanup
+@socketio.on('disconnect')
 def disconnect():
     room = session.get("room")
     name = session.get("name")
@@ -137,9 +170,16 @@ def disconnect():
         rooms[room]["members"] -= 1
         if rooms[room]["members"] <= 0:
             del rooms[room]
+        
+        # Notify others about video disconnect
+        emit('user_left_video', 
+             {'userId': request.sid}, 
+             room=room,
+             skip_sid=request.sid)
 
     send({"name": name, "message": f"{name} has left the room", "type": "system"}, to=room)
     print(f"{name} has left the room {room}")
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)
+    # ip/port for my hotspot:  "172.20.10.9", 5000

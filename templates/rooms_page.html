@@ -1,15 +1,30 @@
-<!-- rooms_page.html -->
 {% extends 'base.html' %}
 
 {% block content %}
 <div class="message-box">
   <h2>Chat Room: {{code}}</h2>
+
+  <div class="video-container">
+    <div id="videoGrid" class="video-grid">
+        <!-- Video elements will be dynamically added here -->
+        <video></video>
+        <video></video>
+    </div>
+  </div>
+
+  <div class="video-controls">
+    <button id="startVideoBtn">Start Video</button>
+    <button id="stopVideoBtn">Stop Video</button>
+    <button id="muteBtn">Mute</button>
+  </div>
+
   <div class="messages" id="messages"></div>
   <div class="inputs">
     <input type="text" rows="3" placeholder="Message" name="message" id="message" />
     <button type="button" name="send" id="send-btn" onClick="sendMessage()">Send</button>
   </div>
 </div>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.3.2/jsencrypt.min.js"></script>
@@ -76,7 +91,6 @@
     return decodeURIComponent(decryptedMessage);
   };
 
-
   const sendMessage = () => {
     const messageElement = document.getElementById("message");
     const message = messageElement.value;
@@ -85,26 +99,27 @@
     aesKey = getAESKey();
     if (!aesKey) {
       console.error("AES Key is missing!");
-    return;
+      return;
     }
 
     try {
-    // Encode message to ensure no invalid characters
-    const encodedMessage = encodeURIComponent(message);
-    console.log("Encoded message: ", encodedMessage);
+      // Encode message to ensure no invalid characters
+      const encodedMessage = encodeURIComponent(message);
+      console.log("Encoded message: ", encodedMessage);
 
-    // Encrypt message with AES key
-    const encryptedMessage = CryptoJS.AES.encrypt(encodedMessage, aesKey).toString();
-    console.log("Encrypted message: ", encryptedMessage);
+      // Encrypt message with AES key
+      const encryptedMessage = CryptoJS.AES.encrypt(encodedMessage, aesKey).toString();
+      console.log("Encrypted message: ", encryptedMessage);
 
-    // Emit encrypted message through socket
-    socketio.emit("message", { data: encryptedMessage });
+      // Emit encrypted message through socket
+      socketio.emit("message", { data: encryptedMessage });
 
-    messageElement.value = ""; // Clear message input after sending
+      messageElement.value = ""; // Clear message input after sending
     } catch (error) {
       console.error("Error during message encryption:", error);
     }
   };
+
   const getAESKey = () => {
     if (!aesKey) {
       aesKey = sessionStorage.getItem("aesKey"); // Retrieve AES key from sessionStorage
@@ -112,10 +127,57 @@
     }
     return aesKey;
   };
+
+  // Placeholder JavaScript for video chat functionality
+  document.addEventListener('DOMContentLoaded', () => {
+      const startVideoBtn = document.getElementById('startVideoBtn');
+      const stopVideoBtn = document.getElementById('stopVideoBtn');
+      const muteBtn = document.getElementById('muteBtn');
+      const videoGrid = document.getElementById('videoGrid');
+
+      // Start Video functionality (mock implementation)
+      startVideoBtn.addEventListener('click', async () => {
+          try {
+              const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+              const videos = videoGrid.querySelectorAll('video');
+              videos.forEach(video => {
+                  video.srcObject = stream;
+                  video.play();
+              });
+          } catch (error) {
+              console.error('Error accessing media devices:', error);
+              alert('Could not start video. Please check your camera permissions.');
+          }
+      });
+
+      // Stop Video functionality
+      stopVideoBtn.addEventListener('click', () => {
+          const videos = videoGrid.querySelectorAll('video');
+          videos.forEach(video => {
+              const stream = video.srcObject;
+              const tracks = stream?.getTracks() || [];
+              tracks.forEach(track => track.stop());
+              video.srcObject = null;
+          });
+      });
+
+      // Mute functionality
+      muteBtn.addEventListener('click', () => {
+          const videos = videoGrid.querySelectorAll('video');
+          videos.forEach(video => {
+              video.muted = !video.muted;
+              muteBtn.textContent = video.muted ? 'Unmute' : 'Mute';
+          });
+      });
+
+  });
 </script>
 {% for msg in messages %}
 <script type="text/javascript">
   createMessage("{{ msg.name }}", "{{ msg.message }}");
 </script>
-{% endfor %} {% endblock %}
+{% endfor %} 
 
+<script>
+</script>
+{% endblock %}
