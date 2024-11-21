@@ -181,5 +181,5 @@ def disconnect():
     print(f"{name} has left the room {room}")
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    socketio.run(app, "172.20.10.9", 5000, debug=True)
     # ip/port for my hotspot:  "172.20.10.9", 5000

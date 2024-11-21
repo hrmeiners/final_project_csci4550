@@ -1,4 +1,0 @@
-asyncio
-opencv-python-headless
-aiortc
-av 
