@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, Response, jsonify, request, session, redirect, url_for
+from aiortc import RTCPeerConnection, RTCSessionDescription
 from flask_socketio import join_room, leave_room, send, SocketIO
 from flask_socketio import emit
 import random
@@ -70,7 +71,6 @@ def home():
 
     return render_template("home_page.html")
 
-
 @app.route("/room")
 def room():
     room = session.get("room")
@@ -78,7 +78,6 @@ def room():
         return redirect(url_for("home"))
 
     public_key = rooms[room]["public_keys"].get(session["name"])
-
 
     # Encrypt AES key with each user's public key
     aes_key = rooms[room]["aes_key"]
@@ -127,39 +126,6 @@ def connect(auth):
     rooms[room]["members"] += 1
     print(f"{name} joined room {room}")
     
-
-#---------------------- Web RTC funcs ------------------------------
-@socketio.on('join_video_room')
-def handle_join_video_room(data):
-    room = data['roomId']
-    # Notify other users in the room
-    emit('user_joined_video', 
-         {'userId': request.sid}, 
-         room=room,
-         skip_sid=request.sid)
-
-@socketio.on('video_offer')
-def handle_video_offer(data):
-    emit('video_offer', {
-        'offer': data['offer'],
-        'from': request.sid
-    }, room=data['to'])
-
-@socketio.on('video_answer')
-def handle_video_answer(data):
-    emit('video_answer', {
-        'answer': data['answer'],
-        'from': request.sid
-    }, room=data['to'])
-
-@socketio.on('ice_candidate')
-def handle_ice_candidate(data):
-    emit('ice_candidate', {
-        'candidate': data['candidate'],
-        'from': request.sid
-    }, room=data['to'])
-
-# Modify the existing disconnect handler to include video cleanup
 @socketio.on('disconnect')
 def disconnect():
     room = session.get("room")
@@ -181,5 +147,5 @@ def disconnect():
     print(f"{name} has left the room {room}")
 
 if __name__ == "__main__":
-    socketio.run(app, "172.20.10.9", 5000, debug=True)
-    # ip/port for my hotspot:  "172.20.10.9", 5000
+    socketio.run(app, host="0.0.0.0", port=8080, debug=True)
+    
