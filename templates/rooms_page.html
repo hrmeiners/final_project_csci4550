@@ -7,8 +7,8 @@
   <div class="video-container">
     <div id="videoGrid" class="video-grid">
         <!-- Video elements will be dynamically added here -->
-        <video></video>
-        <video></video>
+        <video id="local-stream" autoplay></video>
+        <video id="remote-stream"></video>
     </div>
   </div>
 
@@ -128,21 +128,23 @@
     return aesKey;
   };
 
-  // Placeholder JavaScript for video chat functionality
+
   document.addEventListener('DOMContentLoaded', () => {
       const startVideoBtn = document.getElementById('startVideoBtn');
       const stopVideoBtn = document.getElementById('stopVideoBtn');
       const muteBtn = document.getElementById('muteBtn');
       const videoGrid = document.getElementById('videoGrid');
 
-      // Start Video functionality (mock implementation)
+      // start video and grab media source
       startVideoBtn.addEventListener('click', async () => {
           try {
               const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
               const videos = videoGrid.querySelectorAll('video');
               videos.forEach(video => {
-                  video.srcObject = stream;
-                  video.play();
+                  if (video.id == 'local-stream') {
+                    video.srcObject = stream;
+                    video.play();
+                  }
               });
           } catch (error) {
               console.error('Error accessing media devices:', error);
@@ -171,6 +173,7 @@
       });
 
   });
+
 </script>
 {% for msg in messages %}
 <script type="text/javascript">
@@ -178,6 +181,5 @@
 </script>
 {% endfor %} 
 
-<script>
-</script>
+<script src="../static/js/webrtc.js"></script>
 {% endblock %}

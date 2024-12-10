@@ -1,5 +1,5 @@
 const socket = io();
-const localVideo = document.getElementById('localVideo');
+const localVideo = document.getElementById  ('localVideo');
 const remoteVideosContainer = document.querySelector('.remote-videos');
 const videoToggleBtn = document.getElementById('video-toggle-btn');
 
@@ -66,22 +66,9 @@ async function startLocalVideo() {
         });
         localVideo.srcObject = localStream;
     } catch (error) {
-        console.error('Error accessing media devices:', error);
-        alert('Could not access webcam and microphone');
     }
 }
 
-// Toggle local video on/off
-videoToggleBtn.addEventListener('click', () => {
-    if (localStream) {
-        const videoTracks = localStream.getVideoTracks();
-        videoTracks.forEach(track => {
-            track.enabled = !track.enabled;
-        });
-        videoToggleBtn.textContent = videoTracks[0].enabled ? 
-            'Disable Video' : 'Enable Video';
-    }
-});
 
 // Initiate WebRTC connection with another peer
 async function initializeConnection(otherUsername) {
