@@ -2,5 +2,5 @@
 
 Realtime Chat Application with Video and Audio Calling Capabilities written in Python Flask.
 
-Need to put the IP address in here to use unsafe http chrome:
+Note: Need to put the IP address in here to use unsafe http chrome:
 - chrome://flags/#unsafely-treat-insecure-origin-as-secure
